@@ -1,0 +1,23 @@
+package com.invictus.attendanceapp.feature.staff.data.local
+
+import androidx.room.TypeConverter
+
+class EmbeddingConverters {
+
+    @TypeConverter
+    fun fromEmbeddingList(embedding: List<Float>?): String? {
+        return embedding?.joinToString(separator = ",")
+    }
+
+    @TypeConverter
+    fun toEmbeddingList(embeddingString: String?): List<Float>? {
+        if (embeddingString.isNull_or_empty()) return null
+        return try {
+            embeddingString.split(",").map { it.toFloat() }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun String?.isNull_or_empty(): Boolean = this == null || this.trim().isEmpty()
+}
