@@ -518,12 +518,7 @@ fun MarkAttendanceScreen(
                                     )
                                 }
 
-                                Text(
-                                    text = "${uiState.todayPunchCount} ${if (uiState.todayPunchCount == 1) "entry" else "entries"}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+
                             }
 
                             Spacer(modifier = Modifier.height(14.dp))
