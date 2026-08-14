@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AttendanceDto(
-    val id: String = "",
-    val staffId: String = "",
-    val timestamp: Long = 0L,
-    val selfieUrl: String = "",
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0
+    val id: String,
+    val staffId: String,
+    val timestamp: Long,
+    val selfieUrl: String,
+    val latitude: Double,
+    val longitude: Double
 )
 
 @Serializable

@@ -2,8 +2,15 @@ package com.invictus.attendanceapp.core.face
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.core.graphics.scale
+import com.google.android.gms.tflite.java.TfLite
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.InterpreterApi
 import java.io.FileInputStream
 import java.nio.ByteBuffer
@@ -18,39 +25,67 @@ class FaceEmbedder @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
+    @Volatile
     private var interpreter: InterpreterApi? = null
+    private val initMutex = Mutex()
 
     init {
-        initInterpreter()
-    }
-
-    private fun initInterpreter() {
         try {
-            val fileDescriptor = context.assets.openFd(FaceRecognitionConfig.MODEL_FILE_NAME)
-            val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-            val fileChannel = inputStream.channel
-            val startOffset = fileDescriptor.startOffset
-            val declaredLength = fileDescriptor.declaredLength
-            val mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-            interpreter = InterpreterApi.create(mappedByteBuffer, InterpreterApi.Options())
+            TfLite.initialize(context).addOnSuccessListener {
+                try {
+                    initInterpreterInternal()
+                } catch (e: Exception) {
+                    Log.e("FaceEmbedder", "Error creating Interpreter on init", e)
+                }
+            }.addOnFailureListener { e ->
+                Log.e("FaceEmbedder", "TfLite.initialize failed", e)
+            }
         } catch (e: Exception) {
-            // Model file may not be present in assets; fall back to deterministic feature extraction
-            interpreter = null
+            Log.e("FaceEmbedder", "Error starting TfLite initialization", e)
         }
     }
 
-    fun generateEmbedding(croppedFace: Bitmap): List<Float> {
+    private fun initInterpreterInternal(): InterpreterApi {
+        val fileDescriptor = context.assets.openFd(FaceRecognitionConfig.MODEL_FILE_NAME)
+        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+        val fileChannel = inputStream.channel
+        val startOffset = fileDescriptor.startOffset
+        val declaredLength = fileDescriptor.declaredLength
+        val mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+        val options = InterpreterApi.Options().setRuntime(InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY)
+        val newInterpreter = InterpreterApi.create(mappedByteBuffer, options)
+        interpreter = newInterpreter
+        return newInterpreter
+    }
+
+    suspend fun getOrInitInterpreter(): InterpreterApi? {
+        interpreter?.let { return it }
+        return initMutex.withLock {
+            interpreter?.let { return it }
+            try {
+                TfLite.initialize(context).await()
+                initInterpreterInternal()
+            } catch (e: Exception) {
+                Log.e("FaceEmbedder", "Failed to initialize TfLite Interpreter", e)
+                null
+            }
+        }
+    }
+
+    suspend fun generateEmbedding(croppedFace: Bitmap): List<Float> = withContext(Dispatchers.Default) {
         val resized = croppedFace.scale(
             FaceRecognitionConfig.INPUT_IMAGE_SIZE,
             FaceRecognitionConfig.INPUT_IMAGE_SIZE
         )
 
-        val activeInterpreter = interpreter
+        val activeInterpreter = getOrInitInterpreter()
         if (activeInterpreter != null) {
-            return runTFLiteInference(activeInterpreter, resized)
+            Log.e("FaceEmbedder", "Got Active One")
+
+            return@withContext runTFLiteInference(activeInterpreter, resized)
         }
 
-        return fallbackFeatureExtraction(resized)
+        return@withContext fallbackFeatureExtraction(resized)
     }
 
     private fun runTFLiteInference(interpreter: InterpreterApi, bitmap: Bitmap): List<Float> {

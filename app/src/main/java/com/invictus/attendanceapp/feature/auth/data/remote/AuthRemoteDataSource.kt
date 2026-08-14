@@ -9,6 +9,8 @@ import com.invictus.attendanceapp.feature.auth.data.remote.dto.LoginResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +28,7 @@ class AuthRemoteDataSourceImpl @Inject constructor(
     override suspend fun login(request: LoginRequest): AppResult<LoginResponse> {
         return try {
             val response: LoginResponse = ktorClient.client.post("${ktorClient.baseUrl}/api/attendance/login") {
+                contentType(ContentType.Application.Json)
                 setBody(request)
             }.body()
             AppResult.Success(response)
@@ -37,6 +40,7 @@ class AuthRemoteDataSourceImpl @Inject constructor(
     override suspend fun setupInitialAdmin(request: CreateAdminRequest): AppResult<LoginResponse> {
         return try {
             val response: LoginResponse = ktorClient.client.post("${ktorClient.baseUrl}/api/admin/setup") {
+                contentType(ContentType.Application.Json)
                 setBody(request)
             }.body()
             AppResult.Success(response)

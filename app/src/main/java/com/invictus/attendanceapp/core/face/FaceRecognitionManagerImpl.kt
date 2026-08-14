@@ -1,6 +1,7 @@
 package com.invictus.attendanceapp.core.face
 
 import android.graphics.Bitmap
+import android.util.Log
 import com.invictus.attendanceapp.core.common.AppResult
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,6 +17,7 @@ class FaceRecognitionManagerImpl @Inject constructor(
         return when (val cropResult = faceDetector.detectAndCropFace(image)) {
             is AppResult.Success -> {
                 val embedding = faceEmbedder.generateEmbedding(cropResult.data)
+                Log.e("FaceEmbedder", "Got Active One $embedding",)
                 AppResult.Success(embedding)
             }
             is AppResult.Error -> {

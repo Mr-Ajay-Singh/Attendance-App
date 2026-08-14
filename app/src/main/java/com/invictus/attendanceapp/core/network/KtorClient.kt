@@ -4,12 +4,12 @@ import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -24,6 +24,14 @@ class KtorClient @Inject constructor(
 
     val client: HttpClient by lazy {
         HttpClient(OkHttp) {
+            expectSuccess = true
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 60_000
+                connectTimeoutMillis = 30_000
+                socketTimeoutMillis = 60_000
+            }
+
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true
@@ -34,7 +42,6 @@ class KtorClient @Inject constructor(
             }
 
             install(DefaultRequest) {
-                header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
                 tokenProvider.getToken()?.takeIf { it.isNotBlank() }?.let { token ->
                     header(HttpHeaders.Authorization, "Bearer $token")
                 }
@@ -46,7 +53,7 @@ class KtorClient @Inject constructor(
                         Log.d("KtorClientLog", message)
                     }
                 }
-                level = LogLevel.ALL
+                level = LogLevel.INFO
             }
         }
     }

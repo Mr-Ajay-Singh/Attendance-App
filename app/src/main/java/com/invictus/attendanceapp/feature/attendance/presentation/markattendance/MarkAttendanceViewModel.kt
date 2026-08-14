@@ -85,15 +85,15 @@ class MarkAttendanceViewModel @Inject constructor(
     }
 
     fun openCamera() {
-        _uiState.update { it.copy(isCameraOpen = true, error = null) }
+        _uiState.update { it.copy(isCameraOpen = true, error = null, recordedAttendance = null) }
     }
 
     fun closeCamera() {
-        _uiState.update { it.copy(isCameraOpen = false) }
+        _uiState.update { it.copy(isCameraOpen = false, error = null) }
     }
 
     fun processSelfieAndMarkAttendance(selfieBitmap: Bitmap) {
-        _uiState.update { it.copy(isProcessing = true, error = null) }
+        _uiState.update { it.copy(isProcessing = true, error = null, recordedAttendance = null) }
 
         viewModelScope.launch {
             val result = markAttendanceUseCase(staffId, selfieBitmap)
@@ -103,7 +103,8 @@ class MarkAttendanceViewModel @Inject constructor(
                         it.copy(
                             isProcessing = false,
                             isCameraOpen = false,
-                            recordedAttendance = result.data
+                            recordedAttendance = result.data,
+                            error = null
                         )
                     }
                 }
@@ -111,6 +112,7 @@ class MarkAttendanceViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isProcessing = false,
+                            recordedAttendance = null,
                             error = result.error.message
                         )
                     }
@@ -120,7 +122,7 @@ class MarkAttendanceViewModel @Inject constructor(
     }
 
     fun dismissSuccessDialog() {
-        _uiState.update { it.copy(recordedAttendance = null) }
+        _uiState.update { it.copy(recordedAttendance = null, error = null) }
     }
 
     fun logout(onComplete: () -> Unit) {

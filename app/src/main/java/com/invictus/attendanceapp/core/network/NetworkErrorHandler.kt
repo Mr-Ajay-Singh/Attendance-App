@@ -6,6 +6,9 @@ import io.ktor.client.plugins.RedirectResponseException
 import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,7 +25,18 @@ class NetworkErrorHandler @Inject constructor() {
                     ""
                 }
 
+                val serverMessage = try {
+                    val jsonElement = Json.parseToJsonElement(errorBody).jsonObject
+                    jsonElement["message"]?.jsonPrimitive?.content
+                        ?: jsonElement["error"]?.jsonPrimitive?.content
+                        ?: jsonElement["msg"]?.jsonPrimitive?.content
+                        ?: jsonElement["errorMessage"]?.jsonPrimitive?.content
+                } catch (e: Exception) {
+                    if (errorBody.isNotBlank() && !errorBody.trim().startsWith("<")) errorBody.trim() else null
+                }
+
                 when {
+                    !serverMessage.isNullOrBlank() -> AppError.Custom(serverMessage)
                     statusCode == HttpStatusCode.Unauthorized -> AppError.InvalidCredentials
                     statusCode == HttpStatusCode.Forbidden || errorBody.contains("FACE_MISMATCH", ignoreCase = true) -> {
                         AppError.FaceMismatch
@@ -31,10 +45,18 @@ class NetworkErrorHandler @Inject constructor() {
                     errorBody.contains("INVALID_FACE_DATA", ignoreCase = true) -> AppError.Custom("Invalid face data")
                     statusCode == HttpStatusCode.NotFound -> AppError.StaffNotFound
                     statusCode == HttpStatusCode.Conflict -> AppError.DuplicateEmployeeId
-                    else -> AppError.Custom("Request failed: ${statusCode.value}")
+                    else -> AppError.Custom("Request failed (${statusCode.value}): ${statusCode.description}")
                 }
             }
-            is ServerResponseException -> AppError.Custom("Server error (${exception.response.status.value}). Please try again later.")
+            is ServerResponseException -> {
+                val errorBody = try { exception.response.bodyAsText() } catch (e: Exception) { "" }
+                val serverMessage = try {
+                    val jsonElement = Json.parseToJsonElement(errorBody).jsonObject
+                    jsonElement["message"]?.jsonPrimitive?.content
+                        ?: jsonElement["error"]?.jsonPrimitive?.content
+                } catch (e: Exception) { null }
+                AppError.Custom(serverMessage ?: "Server error (${exception.response.status.value}). Please try again later.")
+            }
             is RedirectResponseException -> AppError.Custom("Unexpected redirect response.")
             else -> AppError.Custom("Something Went Wrong. Please try again later.")
         }

@@ -14,9 +14,11 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.contentType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -40,6 +42,7 @@ class StaffRemoteDataSourceImpl @Inject constructor(
     override suspend fun createStaff(request: CreateStaffRequest): AppResult<StaffDto> {
         return try {
             val response: StaffDto = ktorClient.client.post("${ktorClient.baseUrl}/api/staff") {
+                contentType(ContentType.Application.Json)
                 setBody(request)
             }.body()
             AppResult.Success(response)
@@ -69,6 +72,7 @@ class StaffRemoteDataSourceImpl @Inject constructor(
     override suspend fun enrollFace(staffId: String, request: EnrollFaceRequest): AppResult<Unit> {
         return try {
             ktorClient.client.put("${ktorClient.baseUrl}/api/staff/$staffId/face") {
+                contentType(ContentType.Application.Json)
                 setBody(request)
             }
             AppResult.Success(Unit)
@@ -102,6 +106,7 @@ class StaffRemoteDataSourceImpl @Inject constructor(
             } else {
                 val request = EnrollFaceRequest(embedding = embedding, faceImageUrl = imagePath)
                 ktorClient.client.put("${ktorClient.baseUrl}/api/staff/$staffId/face") {
+                    contentType(ContentType.Application.Json)
                     setBody(request)
                 }
             }
