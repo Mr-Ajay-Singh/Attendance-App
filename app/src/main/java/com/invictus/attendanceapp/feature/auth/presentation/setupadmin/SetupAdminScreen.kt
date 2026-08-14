@@ -10,7 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -146,20 +145,7 @@ fun SetupAdminScreen(
                     OutlinedTextField(
                         value = uiState.employeeIdInput,
                         onValueChange = { viewModel.onEmployeeIdChanged(it) },
-                        label = { Text("Employee / Admin ID (e.g. ADM001)") },
-                        leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(4.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    OutlinedTextField(
-                        value = uiState.usernameInput,
-                        onValueChange = { viewModel.onUsernameChanged(it) },
-                        label = { Text("Username") },
+                        label = { Text("Admin Username (e.g. admin)") },
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                         singleLine = true,
                         shape = RoundedCornerShape(4.dp),

@@ -26,18 +26,7 @@ class AddStaffViewModel @Inject constructor(
     }
 
     fun onEmployeeIdChanged(employeeId: String) {
-        _uiState.update { currentState ->
-            val suggestedUsername = if (currentState.isAutoUsername) employeeId.trim().lowercase() else currentState.usernameInput
-            currentState.copy(
-                employeeIdInput = employeeId,
-                usernameInput = suggestedUsername,
-                error = null
-            )
-        }
-    }
-
-    fun onUsernameChanged(username: String) {
-        _uiState.update { it.copy(usernameInput = username, isAutoUsername = false, error = null) }
+        _uiState.update { it.copy(employeeIdInput = employeeId, error = null) }
     }
 
     fun onPasswordChanged(password: String) {
@@ -54,13 +43,13 @@ class AddStaffViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
-            val username = currentState.usernameInput.ifBlank { currentState.employeeIdInput.lowercase() }
+            val employeeId = currentState.employeeIdInput.trim()
             val password = currentState.passwordInput.ifBlank { "password123" }
 
             val result = addStaffUseCase(
-                name = currentState.nameInput,
-                employeeId = currentState.employeeIdInput,
-                username = username,
+                name = currentState.nameInput.trim(),
+                employeeId = employeeId,
+                username = employeeId,
                 password = password
             )
             when (result) {
@@ -70,7 +59,6 @@ class AddStaffViewModel @Inject constructor(
                             isLoading = false,
                             createdStaff = result.data,
                             showCredentialsDialog = true,
-                            usernameInput = username,
                             passwordInput = password
                         )
                     }

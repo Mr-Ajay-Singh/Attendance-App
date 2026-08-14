@@ -5,17 +5,14 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Key
@@ -99,7 +96,7 @@ fun AddStaffScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "USERNAME: ${uiState.usernameInput}",
+                                text = "EMPLOYEE ID: ${staff.employeeId}",
                                 fontFamily = FontFamily.Monospace,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -120,7 +117,7 @@ fun AddStaffScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val textToCopy = "Username: ${uiState.usernameInput}\nPassword: ${uiState.passwordInput}"
+                        val textToCopy = "Employee ID: ${staff.employeeId}\nPassword: ${uiState.passwordInput}"
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText("Staff Credentials", textToCopy)
                         clipboard.setPrimaryClip(clip)
@@ -278,24 +275,6 @@ fun AddStaffScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedTextField(
-                        value = uiState.usernameInput,
-                        onValueChange = { viewModel.onUsernameChanged(it) },
-                        label = { Text("Username") },
-                        leadingIcon = { Icon(Icons.Default.AccountCircle, contentDescription = null, tint = KinpakuGold) },
-                        singleLine = true,
-                        shape = RoundedCornerShape(4.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = KinpakuGold,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
                         value = uiState.passwordInput,
                         onValueChange = { viewModel.onPasswordChanged(it) },
                         label = { Text("Password") },
@@ -375,7 +354,7 @@ fun AddStaffScreen(
                         } else {
                             Text("Create Account & Enroll Face", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Icon(Icons.Default.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

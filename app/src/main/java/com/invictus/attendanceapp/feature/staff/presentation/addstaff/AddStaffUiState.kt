@@ -5,9 +5,7 @@ import com.invictus.attendanceapp.feature.staff.domain.model.Staff
 data class AddStaffUiState(
     val nameInput: String = "",
     val employeeIdInput: String = "",
-    val usernameInput: String = "",
     val passwordInput: String = "",
-    val isAutoUsername: Boolean = true,
     val isLoading: Boolean = false,
     val error: String? = null,
     val createdStaff: Staff? = null,

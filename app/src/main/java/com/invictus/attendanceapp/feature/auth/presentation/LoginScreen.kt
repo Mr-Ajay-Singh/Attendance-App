@@ -57,6 +57,9 @@ fun LoginScreen(
         else -> "Sign in to access your workspace"
     }
 
+    val identifierLabel = if (selectedRole == UserRole.ADMIN) "Username" else "Employee ID"
+    val identifierIcon = if (selectedRole == UserRole.ADMIN) Icons.Default.Person else Icons.Default.Badge
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -148,8 +151,8 @@ fun LoginScreen(
                     OutlinedTextField(
                         value = uiState.usernameInput,
                         onValueChange = { viewModel.onUsernameChanged(it) },
-                        label = { Text("Username") },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                        label = { Text(identifierLabel) },
+                        leadingIcon = { Icon(identifierIcon, contentDescription = null) },
                         singleLine = true,
                         shape = RoundedCornerShape(4.dp),
                         modifier = Modifier.fillMaxWidth(),

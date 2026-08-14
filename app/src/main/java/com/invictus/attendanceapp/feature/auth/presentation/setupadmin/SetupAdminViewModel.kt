@@ -16,7 +16,6 @@ import javax.inject.Inject
 data class SetupAdminUiState(
     val nameInput: String = "",
     val employeeIdInput: String = "",
-    val usernameInput: String = "",
     val passwordInput: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -39,10 +38,6 @@ class SetupAdminViewModel @Inject constructor(
         _uiState.update { it.copy(employeeIdInput = value, error = null) }
     }
 
-    fun onUsernameChanged(value: String) {
-        _uiState.update { it.copy(usernameInput = value, error = null) }
-    }
-
     fun onPasswordChanged(value: String) {
         _uiState.update { it.copy(passwordInput = value, error = null) }
     }
@@ -52,10 +47,11 @@ class SetupAdminViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
+            val employeeId = state.employeeIdInput.trim()
             val result = setupInitialAdminUseCase(
-                name = state.nameInput,
-                employeeId = state.employeeIdInput,
-                username = state.usernameInput,
+                name = state.nameInput.trim(),
+                employeeId = employeeId,
+                username = employeeId,
                 password = state.passwordInput
             )
             when (result) {
