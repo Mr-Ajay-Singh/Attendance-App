@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,9 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.invictus.attendanceapp.core.camera.CameraPreview
 import com.invictus.attendanceapp.core.camera.takePictureBitmap
+import com.invictus.attendanceapp.ui.theme.KinpakuGold
+import com.invictus.attendanceapp.ui.theme.PatinaTeal
+import com.invictus.attendanceapp.ui.theme.VermilionRed
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -68,7 +72,6 @@ fun MarkAttendanceScreen(
         )
     )
 
-    // Reset captured bitmap if processing finished with error
     LaunchedEffect(uiState.isProcessing, uiState.error) {
         if (!uiState.isProcessing && uiState.error != null) {
             capturedBitmap = null
@@ -83,32 +86,50 @@ fun MarkAttendanceScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = VermilionRed,
                     modifier = Modifier.size(36.dp)
                 )
             },
-            title = { Text("Confirm Logout", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to log out from this account?") },
+            title = {
+                Text(
+                    text = "Confirm Logout",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to log out from your staff portal session?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
                         showLogoutDialog = false
                         viewModel.logout { onLogoutClick() }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = VermilionRed),
+                    shape = RoundedCornerShape(4.dp)
                 ) {
-                    Text("Logout")
+                    Text("Logout", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showLogoutDialog = false }) {
+                OutlinedButton(
+                    onClick = { showLogoutDialog = false },
+                    shape = RoundedCornerShape(4.dp)
+                ) {
                     Text("Cancel")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
-    // Success Dialog
+    // Attendance Confirmation Dialog
     uiState.recordedAttendance?.let { attendance ->
         val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
         val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
@@ -122,11 +143,18 @@ fun MarkAttendanceScreen(
                 Icon(
                     Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = PatinaTeal,
                     modifier = Modifier.size(48.dp)
                 )
             },
-            title = { Text("Attendance Recorded!", fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    text = "Attendance Recorded!",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val selfieFile = File(attendance.selfiePath)
@@ -136,49 +164,85 @@ fun MarkAttendanceScreen(
                             contentDescription = "Attendance Selfie",
                             modifier = Modifier
                                 .size(100.dp)
-                                .clip(RoundedCornerShape(12.dp)),
+                                .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
+                    Surface(
+                        color = PatinaTeal.copy(alpha = 0.12f),
+                        shape = RoundedCornerShape(4.dp),
+                        border = BorderStroke(1.dp, PatinaTeal.copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            text = "Face Verified Successfully ✓",
+                            color = PatinaTeal,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Face Verified Successfully ✓",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold
+                        text = "Date: ${dateFormat.format(Date(attendance.timestamp))}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "Time: ${timeFormat.format(Date(attendance.timestamp))}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Date: ${dateFormat.format(Date(attendance.timestamp))}")
-                    Text(text = "Time: ${timeFormat.format(Date(attendance.timestamp))}")
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Location: Lat ${String.format(Locale.US, "%.5f", attendance.latitude)}, Long ${String.format(Locale.US, "%.5f", attendance.longitude)}",
+                        text = "Lat: ${String.format(Locale.US, "%.5f", attendance.latitude)} • Long: ${String.format(Locale.US, "%.5f", attendance.longitude)}",
+                        fontFamily = FontFamily.Monospace,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },
             confirmButton = {
-                Button(onClick = {
-                    capturedBitmap = null
-                    viewModel.dismissSuccessDialog()
-                }) {
-                    Text("OK")
+                Button(
+                    onClick = {
+                        capturedBitmap = null
+                        viewModel.dismissSuccessDialog()
+                    },
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text("OK", fontWeight = FontWeight.Bold)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Staff Attendance", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "STAFF ATTENDANCE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 actions = {
                     IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Logout",
+                            tint = VermilionRed
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Box(
             modifier = Modifier
@@ -192,10 +256,10 @@ fun MarkAttendanceScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else if (staff != null && !staff.faceEnrolled) {
-                // Biometric Registration Pending / Required Screen
+                // Biometric Registration Required State
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -205,16 +269,17 @@ fun MarkAttendanceScreen(
                 ) {
                     Surface(
                         modifier = Modifier
-                            .size(100.dp)
+                            .size(96.dp)
                             .clip(CircleShape),
-                        color = MaterialTheme.colorScheme.errorContainer
+                        color = VermilionRed.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, VermilionRed.copy(alpha = 0.3f))
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.error
+                                modifier = Modifier.size(44.dp),
+                                tint = VermilionRed
                             )
                         }
                     }
@@ -222,27 +287,29 @@ fun MarkAttendanceScreen(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Text(
-                        text = "Biometric Not Registered",
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = "Biometric Registration Required",
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = "${staff.name} (${staff.employeeId})",
+                        fontFamily = FontFamily.Monospace,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    OutlinedCard(
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = VermilionRed.copy(alpha = 0.08f)
                         ),
-                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, VermilionRed.copy(alpha = 0.25f)),
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -252,28 +319,31 @@ fun MarkAttendanceScreen(
                             Icon(
                                 imageVector = Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(28.dp)
+                                tint = VermilionRed,
+                                modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Please request your panel to register your biometric first, then only you can be eligible for attendance.",
+                                text = "Please request your administrator to register your face biometric first before marking attendance.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onErrorContainer
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     Button(
                         onClick = { viewModel.refreshStaffStatus() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        enabled = !uiState.isLoadingStaff
+                            .height(48.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        enabled = !uiState.isLoadingStaff,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         if (uiState.isLoadingStaff) {
                             CircularProgressIndicator(
@@ -298,37 +368,41 @@ fun MarkAttendanceScreen(
                 ) {
                     Surface(
                         modifier = Modifier
-                            .size(100.dp)
+                            .size(96.dp)
                             .clip(CircleShape),
-                        color = MaterialTheme.colorScheme.primaryContainer
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = null,
-                                modifier = Modifier.size(56.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     Text(
-                        text = "Good day!",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+                        text = "Good day",
+                        style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Thin
                     )
 
                     staff?.let { s ->
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${s.name} (${s.employeeId})",
+                            text = "${s.name} • ${s.employeeId}",
+                            fontFamily = FontFamily.Monospace,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(36.dp))
 
                     Button(
                         onClick = {
@@ -342,19 +416,23 @@ fun MarkAttendanceScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(16.dp)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = KinpakuGold,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Icon(Icons.Default.Camera, contentDescription = null)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Mark Attendance", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text("Mark Attendance", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
                 // Camera Verification Overlay Dialog
                 if (uiState.isCameraOpen) {
                     val frameBorderColor by animateColorAsState(
-                        targetValue = if (isFaceDetected) Color(0xFF43A047) else Color(0xFFE53935),
+                        targetValue = if (isFaceDetected) PatinaTeal else VermilionRed,
                         animationSpec = tween(300),
                         label = "frameBorderColor"
                     )
@@ -364,7 +442,6 @@ fun MarkAttendanceScreen(
                         color = MaterialTheme.colorScheme.background
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
-                            // If processing, shut down camera completely and display frozen captured selfie
                             if (uiState.isProcessing && capturedBitmap != null) {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     Image(
@@ -376,7 +453,7 @@ fun MarkAttendanceScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.6f)),
+                                            .background(Color.Black.copy(alpha = 0.7f)),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Column(
@@ -385,21 +462,20 @@ fun MarkAttendanceScreen(
                                         ) {
                                             CircularProgressIndicator(
                                                 modifier = Modifier.size(56.dp),
-                                                color = Color.White,
-                                                strokeWidth = 4.dp
+                                                color = MaterialTheme.colorScheme.primary,
+                                                strokeWidth = 3.dp
                                             )
                                             Spacer(modifier = Modifier.height(16.dp))
                                             Text(
-                                                text = "Verifying biometric with server...",
+                                                text = "VERIFYING BIOMETRIC EMBEDDING...",
+                                                style = MaterialTheme.typography.labelSmall,
                                                 color = Color.White,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 16.sp
+                                                fontWeight = FontWeight.Bold
                                             )
                                         }
                                     }
                                 }
                             } else {
-                                // Live Camera Preview
                                 CameraPreview(
                                     modifier = Modifier.fillMaxSize(),
                                     isProcessing = false,
@@ -409,7 +485,7 @@ fun MarkAttendanceScreen(
                                     onImageCaptureCreated = { imageCapture = it }
                                 )
 
-                                // Face frame oval with dynamic Green/Red border
+                                // Face Frame Dynamic Overlay
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -421,21 +497,21 @@ fun MarkAttendanceScreen(
                                             modifier = Modifier
                                                 .size(280.dp)
                                                 .clip(CircleShape)
-                                                .border(BorderStroke(4.dp, frameBorderColor), CircleShape)
+                                                .border(BorderStroke(3.dp, frameBorderColor), CircleShape)
                                         )
 
                                         Spacer(modifier = Modifier.height(16.dp))
 
-                                        // Face Detection Status Pill
+                                        // Status Pill
                                         Surface(
-                                            color = if (isFaceDetected) Color(0xFF43A047).copy(alpha = 0.85f) else Color(0xFFE53935).copy(alpha = 0.85f),
-                                            shape = CircleShape
+                                            color = if (isFaceDetected) PatinaTeal.copy(alpha = 0.9f) else VermilionRed.copy(alpha = 0.9f),
+                                            shape = RoundedCornerShape(4.dp)
                                         ) {
                                             Text(
-                                                text = if (isFaceDetected) "Face Detected ✓" else "Position Face in Frame",
-                                                color = Color.White,
+                                                text = if (isFaceDetected) "FACE DETECTED ✓" else "POSITION FACE IN FRAME",
+                                                color = Color.Black,
                                                 fontWeight = FontWeight.Bold,
-                                                fontSize = 13.sp,
+                                                style = MaterialTheme.typography.labelSmall,
                                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                                             )
                                         }
@@ -464,28 +540,38 @@ fun MarkAttendanceScreen(
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
                                         .fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                                    color = MaterialTheme.colorScheme.surface,
+                                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(24.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Text(
-                                            text = "Center face inside frame & capture",
-                                            fontWeight = FontWeight.SemiBold,
-                                            style = MaterialTheme.typography.titleMedium
+                                            text = "Center face in frame & capture",
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.onBackground
                                         )
 
                                         if (uiState.error != null) {
                                             Spacer(modifier = Modifier.height(8.dp))
-                                            Text(
-                                                text = uiState.error!!,
-                                                color = MaterialTheme.colorScheme.error,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                textAlign = TextAlign.Center,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
+                                            Surface(
+                                                color = VermilionRed.copy(alpha = 0.1f),
+                                                shape = RoundedCornerShape(4.dp),
+                                                border = BorderStroke(1.dp, VermilionRed.copy(alpha = 0.3f)),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(
+                                                    text = uiState.error!!,
+                                                    color = VermilionRed,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    textAlign = TextAlign.Center,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    modifier = Modifier.padding(8.dp)
+                                                )
+                                            }
                                         }
 
                                         Spacer(modifier = Modifier.height(16.dp))
@@ -506,10 +592,15 @@ fun MarkAttendanceScreen(
                                             },
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(50.dp),
-                                            enabled = imageCapture != null
+                                                .height(48.dp),
+                                            shape = RoundedCornerShape(4.dp),
+                                            enabled = imageCapture != null,
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                            )
                                         ) {
-                                            Text("Verify Face & Record Attendance", fontWeight = FontWeight.Bold)
+                                            Text("Verify Face & Record Attendance", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                         }
                                     }
                                 }

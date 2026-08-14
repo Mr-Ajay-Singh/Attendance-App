@@ -34,6 +34,8 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.invictus.attendanceapp.core.camera.CameraPreview
 import com.invictus.attendanceapp.core.camera.takePictureBitmap
+import com.invictus.attendanceapp.ui.theme.PatinaTeal
+import com.invictus.attendanceapp.ui.theme.VermilionRed
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
@@ -58,7 +60,6 @@ fun FaceEnrollmentScreen(
         }
     }
 
-    // Reset captured bitmap if processing finished with error
     LaunchedEffect(uiState.isProcessing, uiState.error) {
         if (!uiState.isProcessing && uiState.error != null) {
             capturedBitmap = null
@@ -72,38 +73,70 @@ fun FaceEnrollmentScreen(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = PatinaTeal,
                     modifier = Modifier.size(48.dp)
                 )
             },
-            title = { Text("Enrollment Successful!", fontWeight = FontWeight.Bold) },
-            text = { Text("Face biometric embedding has been securely saved for ${uiState.staff?.name ?: "Staff"}.") },
+            title = {
+                Text(
+                    text = "Enrollment Successful!",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Biometric face embedding has been securely extracted and saved for ${uiState.staff?.name ?: "Staff"}.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
-                Button(onClick = onEnrollmentSuccess) {
-                    Text("Done")
+                Button(
+                    onClick = onEnrollmentSuccess,
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text("Done", fontWeight = FontWeight.Bold)
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Face Enrollment", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "FACE ENROLLMENT",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(
                         onClick = onBackClick,
                         enabled = !uiState.isProcessing
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (cameraPermissionState.status.isGranted) {
             val frameBorderColor by animateColorAsState(
-                targetValue = if (isFaceDetected) Color(0xFF43A047) else Color(0xFFE53935),
+                targetValue = if (isFaceDetected) PatinaTeal else VermilionRed,
                 animationSpec = tween(300),
                 label = "enrollBorderColor"
             )
@@ -113,7 +146,6 @@ fun FaceEnrollmentScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // If processing, shut down camera completely and display frozen captured selfie
                 if (uiState.isProcessing && capturedBitmap != null) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         Image(
@@ -125,7 +157,7 @@ fun FaceEnrollmentScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.6f)),
+                                .background(Color.Black.copy(alpha = 0.7f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
@@ -134,21 +166,20 @@ fun FaceEnrollmentScreen(
                             ) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(56.dp),
-                                    color = Color.White,
-                                    strokeWidth = 4.dp
+                                    color = MaterialTheme.colorScheme.primary,
+                                    strokeWidth = 3.dp
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "Enrolling biometric profile...",
+                                    text = "ENROLLING BIOMETRIC EMBEDDING...",
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
                 } else {
-                    // Live Camera Preview
                     CameraPreview(
                         modifier = Modifier.fillMaxSize(),
                         isProcessing = false,
@@ -158,11 +189,11 @@ fun FaceEnrollmentScreen(
                         onImageCaptureCreated = { imageCapture = it }
                     )
 
-                    // Face Overlay Frame Guide with Real-time Green/Red feedback
+                    // Face Overlay Frame
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 100.dp),
+                            .padding(bottom = 120.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -170,62 +201,73 @@ fun FaceEnrollmentScreen(
                                 modifier = Modifier
                                     .size(280.dp)
                                     .clip(CircleShape)
-                                    .border(BorderStroke(4.dp, frameBorderColor), CircleShape)
+                                    .border(BorderStroke(3.dp, frameBorderColor), CircleShape)
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
 
                             // Face Detection Status Pill
                             Surface(
-                                color = if (isFaceDetected) Color(0xFF43A047).copy(alpha = 0.85f) else Color(0xFFE53935).copy(alpha = 0.85f),
-                                shape = CircleShape
+                                color = if (isFaceDetected) PatinaTeal.copy(alpha = 0.9f) else VermilionRed.copy(alpha = 0.9f),
+                                shape = RoundedCornerShape(4.dp)
                             ) {
                                 Text(
-                                    text = if (isFaceDetected) "Face Detected ✓" else "Position Face Inside Circle",
-                                    color = Color.White,
+                                    text = if (isFaceDetected) "FACE DETECTED ✓" else "POSITION FACE INSIDE FRAME",
+                                    color = Color.Black,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
+                                    style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                                 )
                             }
                         }
                     }
 
-                    // Instruction & Controls Bar
+                    // Bottom Instruction Sheet Drawer
                     Surface(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Position face inside frame & capture",
+                                text = "Position face inside circle & capture",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 textAlign = TextAlign.Center
                             )
 
                             uiState.staff?.let { staff ->
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Enrolling for ${staff.name} (${staff.employeeId})",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
                             if (uiState.error != null) {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = uiState.error!!,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    textAlign = TextAlign.Center
-                                )
+                                Surface(
+                                    color = VermilionRed.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(4.dp),
+                                    border = BorderStroke(1.dp, VermilionRed.copy(alpha = 0.3f)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = uiState.error!!,
+                                        color = VermilionRed,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(8.dp)
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -246,12 +288,17 @@ fun FaceEnrollmentScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(50.dp),
-                                enabled = imageCapture != null
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(4.dp),
+                                enabled = imageCapture != null,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
                             ) {
                                 Icon(Icons.Default.Camera, contentDescription = null)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Capture & Enroll Face", fontWeight = FontWeight.Bold)
+                                Text("Capture & Enroll Face", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                             }
                         }
                     }
@@ -268,10 +315,14 @@ fun FaceEnrollmentScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Camera permission is required to enroll staff faces.",
+                        style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
+                    Button(
+                        onClick = { cameraPermissionState.launchPermissionRequest() },
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
                         Text("Grant Permission")
                     }
                 }

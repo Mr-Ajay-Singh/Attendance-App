@@ -1,53 +1,72 @@
 package com.invictus.attendanceapp.ui.theme
 
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
+// Impeccable Kinpaku Dark Color Scheme (Default)
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = KinpakuGold,
+    onPrimary = LacquerDeep,
+    primaryContainer = KinpakuDeep,
+    onPrimaryContainer = KinpakuPale,
+    secondary = PatinaTeal,
+    onSecondary = LacquerDeep,
+    secondaryContainer = PatinaDeep,
+    onSecondaryContainer = PatinaPale,
+    tertiary = KinpakuRich,
+    error = VermilionRed,
+    background = LacquerDark,
+    onBackground = ChampagneText,
+    surface = LacquerRaised,
+    onSurface = TextPrimary,
+    surfaceVariant = GraphiteSurface,
+    onSurfaceVariant = TextMuted,
+    outline = RuleDivider
 )
 
+// Impeccable Kinpaku Light Color Scheme
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = KinpakuDeep,
+    onPrimary = ChampagneText,
+    primaryContainer = KinpakuPale,
+    onPrimaryContainer = LacquerDeep,
+    secondary = PatinaDeep,
+    onSecondary = ChampagneText,
+    secondaryContainer = PatinaPale,
+    onSecondaryContainer = LacquerDeep,
+    tertiary = KinpakuRich,
+    error = VermilionRed,
+    background = ChampagneText,
+    onBackground = LacquerDark,
+    surface = ChampagneText,
+    onSurface = LacquerDark,
+    surfaceVariant = GraphiteSurface,
+    onSurfaceVariant = TextMuted,
+    outline = RuleDivider
 )
 
 @Composable
 fun AttendanceAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = true, // Default to Impeccable dark theme
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val view = LocalView.current
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
     }
 
     MaterialTheme(

@@ -1,10 +1,12 @@
 package com.invictus.attendanceapp.feature.staff.presentation.stafflist
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
@@ -19,11 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.invictus.attendanceapp.feature.staff.domain.model.Staff
+import com.invictus.attendanceapp.ui.theme.KinpakuGold
+import com.invictus.attendanceapp.ui.theme.PatinaTeal
+import com.invictus.attendanceapp.ui.theme.VermilionRed
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,52 +50,99 @@ fun StaffListScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Logout,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = VermilionRed,
                     modifier = Modifier.size(36.dp)
                 )
             },
-            title = { Text("Confirm Logout", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to log out from this account?") },
+            title = {
+                Text(
+                    text = "Confirm Logout",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to log out from the administrative session?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
                         showLogoutDialog = false
                         viewModel.logout { onLogoutClick() }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = VermilionRed),
+                    shape = RoundedCornerShape(4.dp)
                 ) {
-                    Text("Logout")
+                    Text("Logout", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showLogoutDialog = false }) {
+                OutlinedButton(
+                    onClick = { showLogoutDialog = false },
+                    shape = RoundedCornerShape(4.dp)
+                ) {
                     Text("Cancel")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Staff Directory", fontWeight = FontWeight.Bold) },
+                title = {
+                    Column {
+                        Text(
+                            text = "STAFF DIRECTORY",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${uiState.staffList.size} Enrolled Members",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.refresh() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
                     IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
+                        Icon(
+                            Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Logout",
+                            tint = VermilionRed
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddStaffClick,
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Add Staff") }
+                text = { Text("Add Staff", fontWeight = FontWeight.Bold) },
+                containerColor = KinpakuGold,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(4.dp)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -101,7 +154,14 @@ fun StaffListScreen(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
                 placeholder = { Text("Search by name or employee ID...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
+                shape = RoundedCornerShape(4.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
@@ -112,7 +172,7 @@ fun StaffListScreen(
 
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else if (uiState.staffList.isEmpty()) {
                 Box(
@@ -121,18 +181,25 @@ fun StaffListScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "No staff members found",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "NO STAFF MEMBERS FOUND",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedButton(onClick = { viewModel.refresh() }) {
-                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                            OutlinedButton(
+                                onClick = { viewModel.refresh() },
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text("Refresh")
                             }
-                            Button(onClick = onAddStaffClick) {
+                            Button(
+                                onClick = onAddStaffClick,
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
                                 Text("Add Staff")
                             }
                         }
@@ -141,7 +208,7 @@ fun StaffListScreen(
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    contentPadding = PaddingValues(bottom = 90.dp)
                 ) {
                     items(uiState.staffList, key = { it.id }) { staff ->
                         StaffItemCard(
@@ -168,11 +235,13 @@ fun StaffItemCard(
         else -> null
     }
 
-    Card(
+    OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(6.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -194,13 +263,14 @@ fun StaffItemCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape),
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -211,12 +281,15 @@ fun StaffItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = staff.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = staff.employeeId,
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "ID: ${staff.employeeId}",
+                    fontFamily = FontFamily.Monospace,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -225,49 +298,51 @@ fun StaffItemCard(
 
             if (staff.isFaceEnrolled) {
                 Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = CircleShape
+                    color = PatinaTeal.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(4.dp),
+                    border = BorderStroke(1.dp, PatinaTeal.copy(alpha = 0.3f))
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
+                            tint = PatinaTeal,
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Face Enrolled ✓",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.primary
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PatinaTeal
                         )
                     }
                 }
             } else {
                 Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    shape = CircleShape
+                    color = VermilionRed.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(4.dp),
+                    border = BorderStroke(1.dp, VermilionRed.copy(alpha = 0.3f))
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Warning,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp)
+                            tint = VermilionRed,
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Not Enrolled",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.error
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = VermilionRed
                         )
                     }
                 }

@@ -2,7 +2,9 @@ package com.invictus.attendanceapp.feature.staff.presentation.profile
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +41,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.invictus.attendanceapp.core.ui.InAppMapView
 import com.invictus.attendanceapp.feature.attendance.domain.model.Attendance
+import com.invictus.attendanceapp.ui.theme.PatinaTeal
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -54,10 +57,7 @@ fun StaffProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // State for Full Screen Photo Viewer
     var fullScreenPhotoData by remember { mutableStateOf<Pair<Any, String>?>(null) }
-
-    // State for Attendance Coordinate & Detail Dialog
     var selectedAttendanceDetails by remember { mutableStateOf<Attendance?>(null) }
 
     // Full Screen Photo Dialog
@@ -71,7 +71,6 @@ fun StaffProfileScreen(
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.95f))
             ) {
-                // Top Bar with Title and Close Button
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -83,7 +82,7 @@ fun StaffProfileScreen(
                     Text(
                         text = photoTitle,
                         color = Color.White,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f)
                     )
@@ -97,7 +96,6 @@ fun StaffProfileScreen(
                     }
                 }
 
-                // Centered Image
                 AsyncImage(
                     model = photoModel,
                     contentDescription = photoTitle,
@@ -110,7 +108,7 @@ fun StaffProfileScreen(
         }
     }
 
-    // Attendance In-App Map & Details Dialog
+    // Attendance Details & Location Dialog
     selectedAttendanceDetails?.let { attendance ->
         val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
         val timeFormat = SimpleDateFormat("hh:mm:ss a", Locale.getDefault())
@@ -128,7 +126,7 @@ fun StaffProfileScreen(
             onDismissRequest = { selectedAttendanceDetails = null },
             properties = DialogProperties(usePlatformDefaultWidth = false),
             modifier = Modifier
-                .fillMaxWidth(0.92f)
+                .fillMaxWidth(0.94f)
                 .fillMaxHeight(0.85f),
             title = {
                 Row(
@@ -141,10 +139,15 @@ fun StaffProfileScreen(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(26.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Attendance Location", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = "ATTENDANCE LOCATION",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     IconButton(onClick = { selectedAttendanceDetails = null }) {
                         Icon(Icons.Default.Close, contentDescription = "Close")
@@ -158,7 +161,6 @@ fun StaffProfileScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Interactive In-App Map View
                     InAppMapView(
                         latitude = attendance.latitude,
                         longitude = attendance.longitude,
@@ -166,6 +168,7 @@ fun StaffProfileScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(220.dp)
+                            .clip(RoundedCornerShape(6.dp))
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -178,7 +181,7 @@ fun StaffProfileScreen(
                             Box(
                                 modifier = Modifier
                                     .size(72.dp)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(6.dp))
                                     .clickable {
                                         fullScreenPhotoData = selfieModel to "$dateStr • $timeStr Selfie"
                                     }
@@ -193,7 +196,7 @@ fun StaffProfileScreen(
                                     modifier = Modifier
                                         .align(Alignment.BottomEnd)
                                         .padding(2.dp),
-                                    color = Color.Black.copy(alpha = 0.6f),
+                                    color = Color.Black.copy(alpha = 0.7f),
                                     shape = CircleShape
                                 ) {
                                     Icon(
@@ -211,8 +214,9 @@ fun StaffProfileScreen(
 
                         Column(modifier = Modifier.weight(1f)) {
                             Surface(
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(8.dp)
+                                color = PatinaTeal.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(4.dp),
+                                border = BorderStroke(1.dp, PatinaTeal.copy(alpha = 0.3f))
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
@@ -221,38 +225,37 @@ fun StaffProfileScreen(
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
+                                        tint = PatinaTeal,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "Face Verified ✓",
+                                        text = "FACE VERIFIED ✓",
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        fontWeight = FontWeight.Bold,
+                                        color = PatinaTeal
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
 
                             Text(
                                 text = "$dateStr • $timeStr",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Zoomed Coordinate Card
-                    Card(
+                    // Coordinate Card
+                    OutlinedCard(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(6.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(
@@ -290,7 +293,7 @@ fun StaffProfileScreen(
                                         text = String.format(Locale.US, "%.6f°", attendance.latitude),
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp
+                                        fontSize = 14.sp
                                     )
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
@@ -303,7 +306,7 @@ fun StaffProfileScreen(
                                         text = String.format(Locale.US, "%.6f°", attendance.longitude),
                                         fontFamily = FontFamily.Monospace,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp
+                                        fontSize = 14.sp
                                     )
                                 }
                             }
@@ -319,7 +322,7 @@ fun StaffProfileScreen(
                             context.startActivity(mapIntent)
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(4.dp)
                     ) {
                         Icon(Icons.Default.Map, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -327,25 +330,41 @@ fun StaffProfileScreen(
                     }
                 }
             },
-            confirmButton = {}
+            confirmButton = {},
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Staff Profile", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = "STAFF PROFILE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             val staff = uiState.staff
@@ -363,9 +382,11 @@ fun StaffProfileScreen(
                     contentPadding = PaddingValues(bottom = 32.dp)
                 ) {
                     item {
-                        Card(
+                        OutlinedCard(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -386,6 +407,7 @@ fun StaffProfileScreen(
                                         modifier = Modifier
                                             .size(96.dp)
                                             .clip(CircleShape)
+                                            .border(BorderStroke(2.dp, PatinaTeal), CircleShape)
                                             .clickable {
                                                 fullScreenPhotoData = profileImageModel to "${staff.name} - Enrolled Biometric"
                                             }
@@ -402,14 +424,15 @@ fun StaffProfileScreen(
                                         modifier = Modifier
                                             .size(96.dp)
                                             .clip(CircleShape),
-                                        color = MaterialTheme.colorScheme.primaryContainer
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                                     ) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 imageVector = Icons.Default.Person,
                                                 contentDescription = null,
                                                 modifier = Modifier.size(48.dp),
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                tint = MaterialTheme.colorScheme.primary
                                             )
                                         }
                                     }
@@ -419,23 +442,30 @@ fun StaffProfileScreen(
 
                                 Text(
                                     text = staff.name,
-                                    fontSize = 20.sp,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Employee ID: ${staff.employeeId}",
+                                    fontFamily = FontFamily.Monospace,
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(14.dp))
 
                                 OutlinedButton(
-                                    onClick = { onEnrollFaceClick(staff.id) }
+                                    onClick = { onEnrollFaceClick(staff.id) },
+                                    shape = RoundedCornerShape(4.dp)
                                 ) {
                                     Icon(Icons.Default.CameraAlt, contentDescription = null)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(if (staff.isFaceEnrolled) "Re-enroll Face" else "Enroll Face")
+                                    Text(
+                                        text = if (staff.isFaceEnrolled) "Re-enroll Face" else "Enroll Face",
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
                         }
@@ -443,8 +473,9 @@ fun StaffProfileScreen(
 
                     item {
                         Text(
-                            text = "Attendance History (${uiState.attendanceHistory.size})",
-                            style = MaterialTheme.typography.titleMedium,
+                            text = "ATTENDANCE HISTORY (${uiState.attendanceHistory.size})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp)
                         )
@@ -452,9 +483,11 @@ fun StaffProfileScreen(
 
                     if (uiState.attendanceHistory.isEmpty()) {
                         item {
-                            Card(
+                            OutlinedCard(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                                shape = RoundedCornerShape(6.dp),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -507,11 +540,13 @@ fun AttendanceHistoryCard(
         else -> null
     }
 
-    Card(
+    OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onCardClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(6.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
@@ -522,8 +557,8 @@ fun AttendanceHistoryCard(
             if (selfieModel != null) {
                 Box(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(4.dp))
                         .clickable { onPhotoClick(selfieModel, "$dateStr • $timeStr Selfie") }
                 ) {
                     AsyncImage(
@@ -536,12 +571,16 @@ fun AttendanceHistoryCard(
             } else {
                 Surface(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Person, contentDescription = null)
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -553,29 +592,31 @@ fun AttendanceHistoryCard(
                     Icon(
                         imageVector = Icons.Default.Schedule,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = PatinaTeal,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "$dateStr • $timeStr",
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Lat: ${String.format(Locale.US, "%.5f", attendance.latitude)}, Long: ${String.format(Locale.US, "%.5f", attendance.longitude)}",
+                        text = "Lat: ${String.format(Locale.US, "%.5f", attendance.latitude)} • Long: ${String.format(Locale.US, "%.5f", attendance.longitude)}",
+                        fontFamily = FontFamily.Monospace,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
