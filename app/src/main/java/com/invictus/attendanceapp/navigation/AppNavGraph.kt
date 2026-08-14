@@ -85,8 +85,7 @@ fun AppNavGraph(
                 onBackClick = { navController.popBackStack() },
                 onSetupAdminClick = { navController.navigate(Screen.AdminSetup) },
                 onLoginSuccess = { user ->
-                    val isUserAdmin = user.role == UserRole.ADMIN || selectedRole == UserRole.ADMIN
-                    if (isUserAdmin) {
+                    if (user.role == UserRole.ADMIN) {
                         navController.navigate(Screen.AdminStaffList) {
                             popUpTo(Screen.RoleSelection) { inclusive = true }
                         }

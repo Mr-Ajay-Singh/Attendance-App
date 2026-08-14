@@ -18,7 +18,11 @@ class AuthRepositoryImpl @Inject constructor(
     private val remoteDataSource: AuthRemoteDataSource
 ) : AuthRepository {
 
-    override suspend fun login(username: String, password: String): AppResult<User> {
+    override suspend fun login(
+        username: String,
+        password: String,
+        expectedRole: UserRole?
+    ): AppResult<User> {
         val trimmedUsername = username.trim()
         val trimmedPassword = password.trim()
 
@@ -35,18 +39,29 @@ class AuthRepositoryImpl @Inject constructor(
                 if (token.isNullOrBlank()) {
                     return AppResult.Error(AppError.InvalidCredentials)
                 }
-                tokenProvider.saveToken(token)
 
                 val userDto = loginResponse.user
                 val rawRole = loginResponse.role ?: userDto?.role ?: ""
-                val role = if (rawRole.equals("ADMIN", ignoreCase = true) || trimmedUsername.contains("admin", ignoreCase = true)) {
+                val role = if (rawRole.equals("ADMIN", ignoreCase = true)) {
                     UserRole.ADMIN
                 } else {
                     UserRole.STAFF
                 }
 
-                val staffId = userDto?.staffId ?: userDto?.id ?: ""
+                // Strictly validate expected role BEFORE storing any credentials or tokens
+                if (expectedRole != null && role != expectedRole) {
+                    return if (expectedRole == UserRole.ADMIN) {
+                        AppResult.Error(AppError.Custom("Access Denied: This account does not have Admin privileges."))
+                    } else {
+                        AppResult.Error(AppError.Custom("Admin account detected. Please use the Admin Portal to sign in."))
+                    }
+                }
+
+                // Store credentials only upon valid role confirmation
+                tokenProvider.saveToken(token)
                 tokenProvider.saveUserRole(role)
+
+                val staffId = userDto?.staffId ?: userDto?.id ?: ""
                 if (staffId.isNotBlank()) {
                     tokenProvider.saveStaffId(staffId)
                 }
@@ -87,7 +102,7 @@ class AuthRepositoryImpl @Inject constructor(
         return when (val remoteResult = remoteDataSource.setupInitialAdmin(request)) {
             is AppResult.Success -> {
                 // Perform login immediately with created admin credentials
-                login(trimmedUsername, trimmedPassword)
+                login(trimmedUsername, trimmedPassword, expectedRole = UserRole.ADMIN)
             }
             is AppResult.Error -> remoteResult
         }

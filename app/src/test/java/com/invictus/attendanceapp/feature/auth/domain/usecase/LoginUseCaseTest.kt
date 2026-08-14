@@ -27,17 +27,28 @@ class LoginUseCaseTest {
     @Test
     fun login_validAdminCredentials_returnsSuccessUser() = runTest {
         val user = User(username = "admin", role = UserRole.ADMIN)
-        whenever(authRepository.login("admin", "admin123")).thenReturn(AppResult.Success(user))
+        whenever(authRepository.login("admin", "admin123", UserRole.ADMIN)).thenReturn(AppResult.Success(user))
 
-        val result = loginUseCase("admin", "admin123")
+        val result = loginUseCase("admin", "admin123", UserRole.ADMIN)
 
         assertTrue(result is AppResult.Success)
         assertEquals(user, (result as AppResult.Success).data)
     }
 
     @Test
+    fun login_roleMismatch_returnsAccessDeniedError() = runTest {
+        whenever(authRepository.login("staff1", "pass123", UserRole.ADMIN))
+            .thenReturn(AppResult.Error(AppError.Custom("Access Denied: This account does not have Admin privileges.")))
+
+        val result = loginUseCase("staff1", "pass123", UserRole.ADMIN)
+
+        assertTrue(result is AppResult.Error)
+        assertEquals("Access Denied: This account does not have Admin privileges.", (result as AppResult.Error).error.message)
+    }
+
+    @Test
     fun login_invalidCredentials_returnsError() = runTest {
-        whenever(authRepository.login("admin", "wrongpass")).thenReturn(AppResult.Error(AppError.InvalidCredentials))
+        whenever(authRepository.login("admin", "wrongpass", null)).thenReturn(AppResult.Error(AppError.InvalidCredentials))
 
         val result = loginUseCase("admin", "wrongpass")
 

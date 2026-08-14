@@ -193,7 +193,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { viewModel.login() },
+                        onClick = { viewModel.login(selectedRole) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),

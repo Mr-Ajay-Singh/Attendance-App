@@ -3,6 +3,7 @@ package com.invictus.attendanceapp.feature.auth.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.invictus.attendanceapp.core.common.AppResult
+import com.invictus.attendanceapp.feature.auth.domain.model.UserRole
 import com.invictus.attendanceapp.feature.auth.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +29,12 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(passwordInput = password, error = null) }
     }
 
-    fun login() {
+    fun login(expectedRole: UserRole? = null) {
         val currentState = _uiState.value
         _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
-            val result = loginUseCase(currentState.usernameInput, currentState.passwordInput)
+            val result = loginUseCase(currentState.usernameInput, currentState.passwordInput, expectedRole)
             when (result) {
                 is AppResult.Success -> {
                     _uiState.update { it.copy(isLoading = false, loggedInUser = result.data) }
