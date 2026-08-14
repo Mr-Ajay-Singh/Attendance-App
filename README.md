@@ -23,9 +23,9 @@ Built using **Kotlin**, **Jetpack Compose (Material 3)**, **Clean Architecture**
 ## 🔑 Demo Credentials
 
 | Role | Portal Tab | Identifier / Username | Password | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| **Admin** | Admin Portal | `zxcvb9` | `zxcvb9` | Full access to Staff Directory, Staff Creation, Face Enrollment & Attendance Logs |
-| **Staff** | Staff Portal | `zxcvb8` | `zxcvb8` | Access to Daily Attendance Punch & Personal Verification History |
+| :--- | :--- |:----------------------|:---------| :--- |
+| **Admin** | Admin Portal | `zxcvb9`              | `zxcvb9` | Full access to Staff Directory, Staff Creation, Face Enrollment & Attendance Logs |
+| **Staff** | Staff Portal | `zxcvb7`              | `zxcvb7` | Access to Daily Attendance Punch & Personal Verification History |
 
 > 💡 **Live End-to-End Creation**:
 > You are not limited to pre-seeded credentials! Because the app connects to a live production backend, you can:

@@ -12,6 +12,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.invictus.attendanceapp.feature.auth.domain.model.User
@@ -33,6 +36,7 @@ fun SetupAdminScreen(
     onAdminCreatedSuccess: (User) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var isPasswordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.createdUser) {
         uiState.createdUser?.let { user ->
@@ -163,7 +167,16 @@ fun SetupAdminScreen(
                         onValueChange = { viewModel.onPasswordChanged(it) },
                         label = { Text("Password") },
                         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                        visualTransformation = PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = if (isPasswordVisible) "Hide password" else "Show password",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         singleLine = true,
                         shape = RoundedCornerShape(4.dp),
                         modifier = Modifier.fillMaxWidth(),
