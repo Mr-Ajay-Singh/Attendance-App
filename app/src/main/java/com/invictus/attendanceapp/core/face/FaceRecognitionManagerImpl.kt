@@ -13,8 +13,7 @@ class FaceRecognitionManagerImpl @Inject constructor(
 ) : FaceRecognitionManager {
 
     override suspend fun generateEmbedding(image: Bitmap): AppResult<List<Float>> {
-        val cropResult = faceDetector.detectAndCropFace(image)
-        return when (cropResult) {
+        return when (val cropResult = faceDetector.detectAndCropFace(image)) {
             is AppResult.Success -> {
                 val embedding = faceEmbedder.generateEmbedding(cropResult.data)
                 AppResult.Success(embedding)

@@ -3,6 +3,7 @@ package com.invictus.attendanceapp.feature.staff.presentation.profile
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.invictus.attendanceapp.feature.attendance.domain.repository.AttendanceRepository
 import com.invictus.attendanceapp.feature.attendance.domain.usecase.GetAttendanceHistoryUseCase
 import com.invictus.attendanceapp.feature.staff.domain.usecase.GetStaffUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import javax.inject.Inject
 class StaffProfileViewModel @Inject constructor(
     private val getStaffUseCase: GetStaffUseCase,
     private val getAttendanceHistoryUseCase: GetAttendanceHistoryUseCase,
+    private val attendanceRepository: AttendanceRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -34,6 +36,12 @@ class StaffProfileViewModel @Inject constructor(
             val staff = getStaffUseCase(staffId)
             _uiState.update { it.copy(staff = staff) }
 
+            // 1. Fetch remote attendance history to synchronize with backend
+            launch {
+                attendanceRepository.refreshAttendanceHistory(staffId)
+            }
+
+            // 2. Collect from Room database flow
             getAttendanceHistoryUseCase(staffId).collect { history ->
                 _uiState.update { it.copy(attendanceHistory = history, isLoading = false) }
             }

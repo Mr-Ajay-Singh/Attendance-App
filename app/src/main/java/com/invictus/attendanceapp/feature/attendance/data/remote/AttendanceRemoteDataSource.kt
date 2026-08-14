@@ -4,6 +4,7 @@ import com.invictus.attendanceapp.core.common.AppResult
 import com.invictus.attendanceapp.core.network.KtorClient
 import com.invictus.attendanceapp.core.network.NetworkErrorHandler
 import com.invictus.attendanceapp.feature.attendance.data.remote.dto.AttendanceDto
+import com.invictus.attendanceapp.feature.attendance.data.remote.dto.AttendanceHistoryResponse
 import com.invictus.attendanceapp.feature.attendance.data.remote.dto.MarkAttendanceRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -36,8 +37,8 @@ class AttendanceRemoteDataSourceImpl @Inject constructor(
 
     override suspend fun getAttendanceHistory(staffId: String): AppResult<List<AttendanceDto>> {
         return try {
-            val response: List<AttendanceDto> = ktorClient.client.get("${ktorClient.baseUrl}/api/staff/$staffId/attendance").body()
-            AppResult.Success(response)
+            val response: AttendanceHistoryResponse = ktorClient.client.get("${ktorClient.baseUrl}/api/staff/$staffId/attendance").body()
+            AppResult.Success(response.data)
         } catch (e: Exception) {
             AppResult.Error(errorHandler.handleResponseError(e))
         }

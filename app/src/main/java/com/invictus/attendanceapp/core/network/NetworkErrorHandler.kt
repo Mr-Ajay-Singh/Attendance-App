@@ -36,7 +36,7 @@ class NetworkErrorHandler @Inject constructor() {
             }
             is ServerResponseException -> AppError.Custom("Server error (${exception.response.status.value}). Please try again later.")
             is RedirectResponseException -> AppError.Custom("Unexpected redirect response.")
-            else -> AppError.Custom("Network error: Please check your internet connection.")
+            else -> AppError.Custom("Something Went Wrong. Please try again later.")
         }
     }
 }

@@ -92,6 +92,9 @@ dependencies {
     // Image loading
     implementation(libs.coil.compose)
 
+    // MapLibre Native SDK
+    implementation(libs.maplibre.android)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

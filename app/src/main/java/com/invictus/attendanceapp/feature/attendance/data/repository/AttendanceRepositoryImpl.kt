@@ -1,9 +1,6 @@
 package com.invictus.attendanceapp.feature.attendance.data.repository
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Base64
-import com.invictus.attendanceapp.core.common.AppError
 import com.invictus.attendanceapp.core.common.AppResult
 import com.invictus.attendanceapp.feature.attendance.data.local.dao.AttendanceDao
 import com.invictus.attendanceapp.feature.attendance.data.mapper.toDomain
@@ -14,7 +11,6 @@ import com.invictus.attendanceapp.feature.attendance.domain.model.Attendance
 import com.invictus.attendanceapp.feature.attendance.domain.repository.AttendanceRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,22 +21,28 @@ class AttendanceRepositoryImpl @Inject constructor(
     private val remoteDataSource: AttendanceRemoteDataSource
 ) : AttendanceRepository {
 
-    override suspend fun recordAttendance(attendance: Attendance): AppResult<Unit> {
-        val base64Selfie = encodeSelfieToBase64(attendance.selfiePath)
+    override suspend fun recordAttendance(
+        embedding: List<Float>,
+        selfiePath: String,
+        latitude: Double,
+        longitude: Double,
+        timestamp: Long
+    ): AppResult<Attendance> {
+        val base64Selfie = encodeSelfieToBase64(selfiePath)
 
         val request = MarkAttendanceRequest(
-            embedding = emptyList(), // Backend handles embedding or receives vector
+            embedding = embedding,
             selfie = base64Selfie,
-            latitude = attendance.latitude,
-            longitude = attendance.longitude,
-            timestamp = attendance.timestamp
+            latitude = latitude,
+            longitude = longitude,
+            timestamp = timestamp
         )
 
         return when (val remoteResult = remoteDataSource.markAttendance(request)) {
             is AppResult.Success -> {
-                val remoteAttendance = remoteResult.data.toDomain()
+                val remoteAttendance = remoteResult.data.toDomain().copy(selfiePath = selfiePath)
                 attendanceDao.insertAttendance(remoteAttendance.toEntity())
-                AppResult.Success(Unit)
+                AppResult.Success(remoteAttendance)
             }
             is AppResult.Error -> {
                 // STRICT GUARANTEE: If face mismatch or remote failure, DO NOT CREATE LOCAL RECORD
@@ -52,6 +54,17 @@ class AttendanceRepositoryImpl @Inject constructor(
     override fun getAttendanceForStaff(staffId: String): Flow<List<Attendance>> {
         return attendanceDao.getAttendanceForStaff(staffId).map { entities ->
             entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun refreshAttendanceHistory(staffId: String): AppResult<Unit> {
+        return when (val remoteResult = remoteDataSource.getAttendanceHistory(staffId)) {
+            is AppResult.Success -> {
+                val entities = remoteResult.data.map { it.toEntity() }
+                attendanceDao.insertAllAttendance(entities)
+                AppResult.Success(Unit)
+            }
+            is AppResult.Error -> remoteResult
         }
     }
 

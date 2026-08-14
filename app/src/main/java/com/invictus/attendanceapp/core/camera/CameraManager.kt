@@ -4,7 +4,10 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -15,23 +18,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 
+@OptIn(ExperimentalGetImage::class)
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
+    isProcessing: Boolean = false,
+    onFaceDetectionChanged: (Boolean) -> Unit = {},
     onImageCaptureCreated: (ImageCapture) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val previewView = remember { PreviewView(context) }
+
+    val fastFaceDetector = remember {
+        val options = FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .setMinFaceSize(0.20f)
+            .build()
+        FaceDetection.getClient(options)
+    }
 
     AndroidView(
         factory = {
@@ -47,6 +62,38 @@ fun CameraPreview(
 
                 onImageCaptureCreated(imageCapture)
 
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
+                    if (isProcessing) {
+                        imageProxy.close()
+                        return@setAnalyzer
+                    }
+
+                    val mediaImage = imageProxy.image
+                    if (mediaImage != null) {
+                        val inputImage = InputImage.fromMediaImage(
+                            mediaImage,
+                            imageProxy.imageInfo.rotationDegrees
+                        )
+                        fastFaceDetector.process(inputImage)
+                            .addOnSuccessListener { faces ->
+                                val hasSingleFace = faces.size == 1
+                                onFaceDetectionChanged(hasSingleFace)
+                            }
+                            .addOnFailureListener {
+                                onFaceDetectionChanged(false)
+                            }
+                            .addOnCompleteListener {
+                                imageProxy.close()
+                            }
+                    } else {
+                        imageProxy.close()
+                    }
+                }
+
                 val cameraSelector = CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
                     .build()
@@ -57,7 +104,8 @@ fun CameraPreview(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
-                        imageCapture
+                        imageCapture,
+                        imageAnalysis
                     )
                 } catch (e: Exception) {
                     e.printStackTrace()

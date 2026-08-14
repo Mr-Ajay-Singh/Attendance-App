@@ -11,3 +11,8 @@ data class AttendanceDto(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
 )
+
+@Serializable
+data class AttendanceHistoryResponse(
+    val data: List<AttendanceDto> = emptyList()
+)

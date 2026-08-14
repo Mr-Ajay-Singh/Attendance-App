@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.sqrt
+import androidx.core.graphics.scale
 
 @Singleton
 class FaceEmbedder @Inject constructor(
@@ -39,11 +40,9 @@ class FaceEmbedder @Inject constructor(
     }
 
     fun generateEmbedding(croppedFace: Bitmap): List<Float> {
-        val resized = Bitmap.createScaledBitmap(
-            croppedFace,
+        val resized = croppedFace.scale(
             FaceRecognitionConfig.INPUT_IMAGE_SIZE,
-            FaceRecognitionConfig.INPUT_IMAGE_SIZE,
-            true
+            FaceRecognitionConfig.INPUT_IMAGE_SIZE
         )
 
         val activeInterpreter = interpreter

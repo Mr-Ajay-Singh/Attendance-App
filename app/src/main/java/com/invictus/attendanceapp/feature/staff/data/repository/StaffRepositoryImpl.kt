@@ -6,7 +6,6 @@ import com.invictus.attendanceapp.feature.staff.data.mapper.toDomain
 import com.invictus.attendanceapp.feature.staff.data.mapper.toEntity
 import com.invictus.attendanceapp.feature.staff.data.remote.StaffRemoteDataSource
 import com.invictus.attendanceapp.feature.staff.data.remote.dto.CreateStaffRequest
-import com.invictus.attendanceapp.feature.staff.data.remote.dto.EnrollFaceRequest
 import com.invictus.attendanceapp.feature.staff.domain.model.Staff
 import com.invictus.attendanceapp.feature.staff.domain.repository.StaffRepository
 import kotlinx.coroutines.flow.Flow
@@ -79,11 +78,7 @@ class StaffRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateFace(staffId: String, embedding: List<Float>, imagePath: String): AppResult<Unit> {
-        val request = EnrollFaceRequest(
-            embedding = embedding,
-            faceImageUrl = imagePath
-        )
-        return when (val remoteResult = remoteDataSource.enrollFace(staffId, request)) {
+        return when (val remoteResult = remoteDataSource.enrollFaceMultipart(staffId, embedding, imagePath)) {
             is AppResult.Success -> {
                 staffDao.updateFaceEmbedding(staffId, embedding, imagePath)
                 AppResult.Success(Unit)

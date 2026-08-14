@@ -8,10 +8,18 @@ import com.invictus.attendanceapp.feature.staff.data.remote.dto.EnrollFaceReques
 import com.invictus.attendanceapp.feature.staff.data.remote.dto.StaffDto
 import com.invictus.attendanceapp.feature.staff.data.remote.dto.StaffListResponse
 import io.ktor.client.call.body
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.forms.submitFormWithBinaryData
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +28,7 @@ interface StaffRemoteDataSource {
     suspend fun getAllStaff(): AppResult<List<StaffDto>>
     suspend fun getStaffById(staffId: String): AppResult<StaffDto>
     suspend fun enrollFace(staffId: String, request: EnrollFaceRequest): AppResult<Unit>
+    suspend fun enrollFaceMultipart(staffId: String, embedding: List<Float>, imagePath: String): AppResult<Unit>
 }
 
 @Singleton
@@ -61,6 +70,40 @@ class StaffRemoteDataSourceImpl @Inject constructor(
         return try {
             ktorClient.client.put("${ktorClient.baseUrl}/api/staff/$staffId/face") {
                 setBody(request)
+            }
+            AppResult.Success(Unit)
+        } catch (e: Exception) {
+            AppResult.Error(errorHandler.handleResponseError(e))
+        }
+    }
+
+    override suspend fun enrollFaceMultipart(
+        staffId: String,
+        embedding: List<Float>,
+        imagePath: String
+    ): AppResult<Unit> {
+        return try {
+            val file = File(imagePath)
+            if (file.exists()) {
+                val bytes = file.readBytes()
+                val embeddingJson = Json.encodeToString(embedding)
+                ktorClient.client.submitFormWithBinaryData(
+                    url = "${ktorClient.baseUrl}/api/staff/$staffId/face",
+                    formData = formData {
+                        append("embedding", embeddingJson)
+                        append("faceImage", bytes, Headers.build {
+                            append(HttpHeaders.ContentType, "image/jpeg")
+                            append(HttpHeaders.ContentDisposition, "filename=\"${file.name}\"")
+                        })
+                    }
+                ) {
+                    method = HttpMethod.Put
+                }
+            } else {
+                val request = EnrollFaceRequest(embedding = embedding, faceImageUrl = imagePath)
+                ktorClient.client.put("${ktorClient.baseUrl}/api/staff/$staffId/face") {
+                    setBody(request)
+                }
             }
             AppResult.Success(Unit)
         } catch (e: Exception) {

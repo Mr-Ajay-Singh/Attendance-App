@@ -5,6 +5,7 @@ import com.invictus.attendanceapp.feature.staff.domain.model.Staff
 
 data class MarkAttendanceUiState(
     val staff: Staff? = null,
+    val isLoadingStaff: Boolean = false,
     val isCameraOpen: Boolean = false,
     val isProcessing: Boolean = false,
     val recordedAttendance: Attendance? = null,

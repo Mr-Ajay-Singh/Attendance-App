@@ -13,6 +13,9 @@ interface AttendanceDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAttendance(attendance: AttendanceEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllAttendance(attendanceList: List<AttendanceEntity>)
+
     @Query("SELECT * FROM attendance WHERE staffId = :staffId ORDER BY timestamp DESC")
     fun getAttendanceForStaff(staffId: String): Flow<List<AttendanceEntity>>
 

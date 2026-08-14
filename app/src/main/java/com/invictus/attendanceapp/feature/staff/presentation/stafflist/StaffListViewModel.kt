@@ -2,6 +2,7 @@ package com.invictus.attendanceapp.feature.staff.presentation.stafflist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.invictus.attendanceapp.feature.auth.domain.usecase.LogoutUseCase
 import com.invictus.attendanceapp.feature.staff.domain.repository.StaffRepository
 import com.invictus.attendanceapp.feature.staff.domain.usecase.GetStaffListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class StaffListViewModel @Inject constructor(
     private val getStaffListUseCase: GetStaffListUseCase,
-    private val staffRepository: StaffRepository
+    private val staffRepository: StaffRepository,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -58,5 +60,12 @@ class StaffListViewModel @Inject constructor(
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
+    }
+
+    fun logout(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            logoutUseCase()
+            onComplete()
+        }
     }
 }
