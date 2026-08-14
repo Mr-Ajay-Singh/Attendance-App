@@ -2,8 +2,9 @@ package com.invictus.attendanceapp.core.face
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.InterpreterApi
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -11,14 +12,13 @@ import java.nio.channels.FileChannel
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.sqrt
-import androidx.core.graphics.scale
 
 @Singleton
 class FaceEmbedder @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    private var interpreter: Interpreter? = null
+    private var interpreter: InterpreterApi? = null
 
     init {
         initInterpreter()
@@ -32,7 +32,7 @@ class FaceEmbedder @Inject constructor(
             val startOffset = fileDescriptor.startOffset
             val declaredLength = fileDescriptor.declaredLength
             val mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-            interpreter = Interpreter(mappedByteBuffer)
+            interpreter = InterpreterApi.create(mappedByteBuffer, InterpreterApi.Options())
         } catch (e: Exception) {
             // Model file may not be present in assets; fall back to deterministic feature extraction
             interpreter = null
@@ -53,7 +53,7 @@ class FaceEmbedder @Inject constructor(
         return fallbackFeatureExtraction(resized)
     }
 
-    private fun runTFLiteInference(interpreter: Interpreter, bitmap: Bitmap): List<Float> {
+    private fun runTFLiteInference(interpreter: InterpreterApi, bitmap: Bitmap): List<Float> {
         val inputBuffer = ByteBuffer.allocateDirect(4 * FaceRecognitionConfig.INPUT_IMAGE_SIZE * FaceRecognitionConfig.INPUT_IMAGE_SIZE * 3)
         inputBuffer.order(ByteOrder.nativeOrder())
 

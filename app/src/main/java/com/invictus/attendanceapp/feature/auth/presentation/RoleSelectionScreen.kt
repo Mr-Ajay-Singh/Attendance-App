@@ -79,18 +79,18 @@ fun RoleSelectionScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Eyebrow Badge
-            Surface(
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(4.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-            ) {
-                Text(
-                    text = "PRIVACY-FIRST ON-DEVICE BIOMETRICS",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                )
-            }
+//            Surface(
+//                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+//                shape = RoundedCornerShape(4.dp),
+//                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+//            ) {
+//                Text(
+//                    text = "PRIVACY-FIRST ON-DEVICE BIOMETRICS",
+//                    style = MaterialTheme.typography.labelSmall,
+//                    color = MaterialTheme.colorScheme.primary,
+//                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+//                )
+//            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

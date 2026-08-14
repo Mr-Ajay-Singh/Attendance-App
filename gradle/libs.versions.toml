@@ -13,7 +13,7 @@ ksp = "2.0.21-1.0.27"
 room = "2.6.1"
 camerax = "1.4.1"
 mlkitFace = "16.1.7"
-tensorflowLite = "2.16.1"
+playServicesTflite = "16.4.0"
 playServicesLocation = "21.3.0"
 navigationCompose = "2.8.4"
 hiltNavigationCompose = "1.2.0"
@@ -59,9 +59,9 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 
-# ML Kit & TensorFlow Lite
+# ML Kit & Google Play Services TFLite (16 KB page-size compliant)
 mlkit-face-detection = { group = "com.google.mlkit", name = "face-detection", version.ref = "mlkitFace" }
-tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
+play-services-tflite-java = { group = "com.google.android.gms", name = "play-services-tflite-java", version.ref = "playServicesTflite" }
 
 # Location & Coroutines
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }

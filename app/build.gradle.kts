@@ -71,7 +71,7 @@ dependencies {
 
     // ML Kit & TensorFlow Lite
     implementation(libs.mlkit.face.detection)
-    implementation(libs.tensorflow.lite)
+    implementation(libs.play.services.tflite.java)
 
     // Location & Coroutines
     implementation(libs.play.services.location)
