@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -39,6 +40,9 @@ fun StaffListScreen(
             TopAppBar(
                 title = { Text("Staff Directory", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(onClick = { viewModel.refresh() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                    }
                     IconButton(onClick = onLogoutClick) {
                         Icon(Icons.Default.Logout, contentDescription = "Logout")
                     }
@@ -88,8 +92,15 @@ fun StaffListScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = onAddStaffClick) {
-                            Text("Add Staff")
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            OutlinedButton(onClick = { viewModel.refresh() }) {
+                                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Refresh")
+                            }
+                            Button(onClick = onAddStaffClick) {
+                                Text("Add Staff")
+                            }
                         }
                     }
                 }

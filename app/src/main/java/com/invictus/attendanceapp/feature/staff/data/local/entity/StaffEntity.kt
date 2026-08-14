@@ -9,6 +9,8 @@ data class StaffEntity(
     val id: String,
     val name: String,
     val employeeId: String,
-    val faceEmbedding: List<Float>?,
-    val faceImagePath: String?
+    val faceEnrolled: Boolean = false,
+    val faceImageUrl: String? = null,
+    val faceEmbedding: List<Float>? = null,
+    val faceImagePath: String? = null
 )

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +26,27 @@ class AddStaffViewModel @Inject constructor(
     }
 
     fun onEmployeeIdChanged(employeeId: String) {
-        _uiState.update { it.copy(employeeIdInput = employeeId, error = null) }
+        _uiState.update { currentState ->
+            val suggestedUsername = if (currentState.isAutoUsername) employeeId.trim().lowercase() else currentState.usernameInput
+            currentState.copy(
+                employeeIdInput = employeeId,
+                usernameInput = suggestedUsername,
+                error = null
+            )
+        }
+    }
+
+    fun onUsernameChanged(username: String) {
+        _uiState.update { it.copy(usernameInput = username, isAutoUsername = false, error = null) }
+    }
+
+    fun onPasswordChanged(password: String) {
+        _uiState.update { it.copy(passwordInput = password, error = null) }
+    }
+
+    fun generateRandomPassword() {
+        val randomPass = UUID.randomUUID().toString().take(8)
+        _uiState.update { it.copy(passwordInput = randomPass, error = null) }
     }
 
     fun addStaff() {
@@ -33,16 +54,36 @@ class AddStaffViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
-            val result = addStaffUseCase(currentState.nameInput, currentState.employeeIdInput)
+            val username = currentState.usernameInput.ifBlank { currentState.employeeIdInput.lowercase() }
+            val password = currentState.passwordInput.ifBlank { "password123" }
+
+            val result = addStaffUseCase(
+                name = currentState.nameInput,
+                employeeId = currentState.employeeIdInput,
+                username = username,
+                password = password
+            )
             when (result) {
                 is AppResult.Success -> {
-                    _uiState.update { it.copy(isLoading = false, createdStaff = result.data) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            createdStaff = result.data,
+                            showCredentialsDialog = true,
+                            usernameInput = username,
+                            passwordInput = password
+                        )
+                    }
                 }
                 is AppResult.Error -> {
                     _uiState.update { it.copy(isLoading = false, error = result.error.message) }
                 }
             }
         }
+    }
+
+    fun dismissCredentialsDialog() {
+        _uiState.update { it.copy(showCredentialsDialog = false) }
     }
 
     fun consumeCreatedStaff() {

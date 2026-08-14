@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.invictus.attendanceapp.core.common.AppResult
+import com.invictus.attendanceapp.core.network.AuthTokenProvider
 import com.invictus.attendanceapp.feature.attendance.domain.usecase.MarkAttendanceUseCase
 import com.invictus.attendanceapp.feature.staff.domain.usecase.GetStaffUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,16 +20,19 @@ import javax.inject.Inject
 class MarkAttendanceViewModel @Inject constructor(
     private val getStaffUseCase: GetStaffUseCase,
     private val markAttendanceUseCase: MarkAttendanceUseCase,
+    private val tokenProvider: AuthTokenProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val staffId: String = savedStateHandle["staffId"] ?: "staff_default_001"
+    private val staffId: String = savedStateHandle["staffId"] ?: tokenProvider.getStaffId() ?: ""
 
     private val _uiState = MutableStateFlow(MarkAttendanceUiState())
     val uiState: StateFlow<MarkAttendanceUiState> = _uiState.asStateFlow()
 
     init {
-        loadStaff()
+        if (staffId.isNotBlank()) {
+            loadStaff()
+        }
     }
 
     private fun loadStaff() {

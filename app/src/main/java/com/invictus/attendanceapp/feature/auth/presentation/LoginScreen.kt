@@ -1,10 +1,10 @@
 package com.invictus.attendanceapp.feature.auth.presentation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -24,7 +24,10 @@ import com.invictus.attendanceapp.feature.auth.domain.model.UserRole
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    selectedRole: UserRole? = null,
     viewModel: LoginViewModel,
+    onBackClick: () -> Unit = {},
+    onSetupAdminClick: () -> Unit = {},
     onLoginSuccess: (User) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -36,15 +39,32 @@ fun LoginScreen(
         }
     }
 
+    val titleText = when (selectedRole) {
+        UserRole.ADMIN -> "Admin Login"
+        UserRole.STAFF -> "Staff Login"
+        else -> "Attendance Portal"
+    }
+
+    val subtitleText = when (selectedRole) {
+        UserRole.ADMIN -> "Sign in to access admin management dashboard"
+        UserRole.STAFF -> "Sign in to mark daily face attendance"
+        else -> "Sign in to access your workspace"
+    }
+
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
-                        "Attendance Portal",
+                        titleText,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back to role choice")
+                    }
                 }
             )
         }
@@ -58,7 +78,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Badge,
+                imageVector = if (selectedRole == UserRole.ADMIN) Icons.Default.AdminPanelSettings else Icons.Default.Badge,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(72.dp)
@@ -72,7 +92,7 @@ fun LoginScreen(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Sign in to access your attendance workspace",
+                text = subtitleText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -135,29 +155,10 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Demo Credentials Card
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Demo Credentials",
-                        fontWeight = FontWeight.SemiBold,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "• Admin: admin / admin123\n• Staff: staff / staff123",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            if (selectedRole == UserRole.ADMIN) {
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(onClick = onSetupAdminClick) {
+                    Text("First Time Setup? Create Master Admin", fontWeight = FontWeight.SemiBold)
                 }
             }
         }

@@ -11,13 +11,11 @@ class EmbeddingConverters {
 
     @TypeConverter
     fun toEmbeddingList(embeddingString: String?): List<Float>? {
-        if (embeddingString.isNull_or_empty()) return null
+        if (embeddingString.isNullOrEmpty()) return null
         return try {
             embeddingString.split(",").map { it.toFloat() }
         } catch (e: Exception) {
             null
         }
     }
-
-    private fun String?.isNull_or_empty(): Boolean = this == null || this.trim().isEmpty()
 }

@@ -5,4 +5,5 @@ import com.invictus.attendanceapp.feature.auth.domain.model.User
 
 interface AuthRepository {
     suspend fun login(username: String, password: String): AppResult<User>
+    suspend fun setupInitialAdmin(name: String, employeeId: String, username: String, password: String): AppResult<User>
 }

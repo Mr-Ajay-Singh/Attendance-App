@@ -2,6 +2,7 @@ package com.invictus.attendanceapp.feature.staff.presentation.stafflist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.invictus.attendanceapp.feature.staff.domain.repository.StaffRepository
 import com.invictus.attendanceapp.feature.staff.domain.usecase.GetStaffListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StaffListViewModel @Inject constructor(
-    private val getStaffListUseCase: GetStaffListUseCase
+    private val getStaffListUseCase: GetStaffListUseCase,
+    private val staffRepository: StaffRepository
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -22,6 +24,8 @@ class StaffListViewModel @Inject constructor(
     val uiState: StateFlow<StaffListUiState> = _uiState.asStateFlow()
 
     init {
+        refresh()
+
         viewModelScope.launch {
             combine(getStaffListUseCase(), _searchQuery) { list, query ->
                 if (query.isBlank()) {
@@ -41,6 +45,14 @@ class StaffListViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun refresh() {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            staffRepository.refreshStaffList()
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 

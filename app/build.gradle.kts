@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -29,19 +30,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
     buildFeatures {
         compose = true
     }
-    sourceSets {
-        getByName("test") {
-            java.srcDirs("src/test/java", "src/test/kotlin")
-        }
-    }
     androidResources {
         noCompress += "tflite"
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
 }
 
@@ -59,7 +55,6 @@ dependencies {
     // Navigation & Hilt
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.core.ktx)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
@@ -81,6 +76,18 @@ dependencies {
     // Location & Coroutines
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    // Ktor Client & Serialization
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Accompanist Permissions
+    implementation(libs.accompanist.permissions)
 
     // Image loading
     implementation(libs.coil.compose)
