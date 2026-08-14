@@ -1,7 +1,11 @@
 package com.invictus.attendanceapp.feature.staff.presentation.enrollment
 
 import android.Manifest
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.Settings
+import android.widget.Toast
 import androidx.camera.core.ImageCapture
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -16,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,6 +61,11 @@ fun FaceEnrollmentScreen(
 
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
+            Toast.makeText(
+                context,
+                "Camera permission is compulsory for face biometric enrollment.",
+                Toast.LENGTH_LONG
+            ).show()
             cameraPermissionState.launchPermissionRequest()
         }
     }
@@ -243,8 +253,8 @@ fun FaceEnrollmentScreen(
                                 textAlign = TextAlign.Center
                             )
 
+                            Spacer(modifier = Modifier.height(2.dp))
                             uiState.staff?.let { staff ->
-                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Enrolling for ${staff.name} (${staff.employeeId})",
                                     style = MaterialTheme.typography.bodyMedium,
@@ -313,17 +323,64 @@ fun FaceEnrollmentScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(
+                        modifier = Modifier.size(72.dp).clip(CircleShape),
+                        color = VermilionRed.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, VermilionRed.copy(alpha = 0.3f))
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp),
+                                tint = VermilionRed
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
                     Text(
-                        text = "Camera permission is required to enroll staff faces.",
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = "Camera Permission Compulsory",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Camera access is compulsory to capture and register facial biometric embeddings.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { cameraPermissionState.launchPermissionRequest() },
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text("Grant Permission")
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(
+                            onClick = {
+                                Toast.makeText(
+                                    context,
+                                    "Camera permission is compulsory for face biometric enrollment.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                cameraPermissionState.launchPermissionRequest()
+                            },
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text("Retry Request")
+                        }
+
+                        Button(
+                            onClick = {
+                                com.invictus.attendanceapp.core.common.openAppPermissionSettings(context)
+                            },
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text("Open App Permissions", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
